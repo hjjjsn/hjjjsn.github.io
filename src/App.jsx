@@ -690,7 +690,13 @@ function useLocalTweaks() {
   const [tweaks, setTweaks] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('hj_tweaks') || 'null');
-      if (saved) return { ...TWEAK_DEFAULTS, ...saved };
+      if (saved) {
+        const restored = { ...TWEAK_DEFAULTS, ...saved };
+        if (restored.bgImage && !String(restored.bgImage).startsWith('data:image/')) {
+          restored.bgImage = "";
+        }
+        return restored;
+      }
     } catch (e) {}
     return TWEAK_DEFAULTS;
   });
@@ -762,7 +768,7 @@ function App() {
   /* propagate bg vars to :root so .hole-inner can read them too */
   useEffect(() => {
     const r = document.documentElement.style;
-    const defaultBg = `${import.meta.env.BASE_URL}assets/background.jpg`;
+    const defaultBg = new URL('assets/background.jpg', window.location.href).href;
     r.setProperty('--bg-image', `url("${tweaks.bgImage || defaultBg}")`);
     r.setProperty('--bg-grayscale', tweaks.bgGrayscale);
     r.setProperty('--bg-brightness', tweaks.bgBrightness);
