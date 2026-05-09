@@ -292,12 +292,7 @@ button { border: none; background: none; font: inherit; color: inherit; cursor: 
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-color: var(--paper);
-  background-image:
-    radial-gradient(circle at 30% 20%, rgba(26,26,26,0.025) 1px, transparent 2px),
-    radial-gradient(circle at 70% 60%, rgba(26,26,26,0.03)  1px, transparent 2px),
-    radial-gradient(circle at 50% 80%, rgba(90,122,74,0.025) 1px, transparent 2px);
-  background-size: 7px 7px, 11px 11px, 13px 13px;
+  display: block;
 }
 
 /* paper torn edge top + bottom (subtle) */
