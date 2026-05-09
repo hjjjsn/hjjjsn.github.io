@@ -677,7 +677,7 @@ function BgControls({ tweaks, setTweak }) {
             </label>
           </div>
           <p className="bg-panel-foot">
-            ※ 選んだ画像はこのタブだけの一時表示です。固定背景は assets/background.jpg を差し替えてください。
+            ※ 選んだ画像はこのタブだけの一時表示です。
           </p>
         </div>
       )}
@@ -858,7 +858,7 @@ function App() {
 
       {!tweaks.bgImage && (
         <span className="bg-empty-hint">
-          ▢ 背景は assets/background.jpg。差し替えは右下の「背景」ボタンから
+          ▢ 右下の「背景」ボタンから画像を差し替えられます
         </span>
       )}
     </>
