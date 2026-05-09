@@ -775,6 +775,56 @@ function App() {
     r.setProperty('--bg-contrast', tweaks.bgContrast);
   }, [tweaks]);
 
+  useEffect(() => {
+    let raf = 0;
+    let cancelled = false;
+    let currentAspect = 4 / 3;
+    const bgUrl = tweaks.bgImage || new URL('assets/background.jpg', window.location.href).href;
+
+    function applyHoleBackgrounds() {
+      if (cancelled) return;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const coverW = Math.max(vw, vh * currentAspect);
+      const coverH = coverW / currentAspect;
+      const left = (vw - coverW) / 2;
+      const top = (vh - coverH) / 2;
+
+      document.querySelectorAll('.hole-inner').forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        el.style.setProperty('--hole-bg-size', `${coverW}px ${coverH}px`);
+        el.style.setProperty('--hole-bg-position', `${left - rect.left}px ${top - rect.top}px`);
+      });
+    }
+
+    function schedule() {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(applyHoleBackgrounds);
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      currentAspect = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3;
+      schedule();
+    };
+    img.onerror = schedule;
+    img.src = bgUrl;
+
+    const fallback = () => schedule();
+    window.addEventListener('scroll', fallback, { passive: true });
+    window.addEventListener('resize', fallback);
+    schedule();
+    const timers = [120, 480, 960].map((delay) => setTimeout(schedule, delay));
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      timers.forEach(clearTimeout);
+      window.removeEventListener('scroll', fallback);
+      window.removeEventListener('resize', fallback);
+    };
+  }, [tweaks.bgImage]);
+
   return (
     <>
       <div className="bg-layer"/>
