@@ -796,21 +796,24 @@ function App() {
         };
       });
 
-      const masks = [
+      const fmt = (value) => Math.round(value * 100) / 100;
+      const outer = `M0 0H${fmt(paperRect.width)}V${fmt(paperRect.height)}H0Z`;
+      const cutouts = holes.map((h) => (
+        `M${fmt(h.x)} ${fmt(h.y)}H${fmt(h.x + h.w)}V${fmt(h.y + h.h)}H${fmt(h.x)}Z`
+      ));
+      const svg = [
         '<svg xmlns="http://www.w3.org/2000/svg"',
-        ` width="${paperRect.width}" height="${paperRect.height}"`,
-        ` viewBox="0 0 ${paperRect.width} ${paperRect.height}">`,
-        '<defs><mask id="cut"><rect width="100%" height="100%" fill="white"/>',
-        ...holes.map((h) => (
-          `<rect x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}" fill="black"/>`
-        )),
-        '</mask></defs><rect width="100%" height="100%" fill="white" mask="url(%23cut)"/></svg>',
-      ];
-      const mask = `url("data:image/svg+xml,${encodeURIComponent(masks.join(''))}")`;
+        ` viewBox="0 0 ${fmt(paperRect.width)} ${fmt(paperRect.height)}">`,
+        `<path fill="black" fill-rule="evenodd" d="${[outer, ...cutouts].join(' ')}"/>`,
+        '</svg>',
+      ].join('');
+      const mask = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
       paperBg.style.webkitMaskImage = mask;
       paperBg.style.maskImage = mask;
       paperBg.style.webkitMaskSize = '100% 100%';
       paperBg.style.maskSize = '100% 100%';
+      paperBg.style.webkitMaskRepeat = 'no-repeat';
+      paperBg.style.maskRepeat = 'no-repeat';
     }
 
     function schedule() {
