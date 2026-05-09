@@ -39,7 +39,7 @@ button { border: none; background: none; font: inherit; color: inherit; cursor: 
   background-size: var(--bg-cover-width) auto;
   background-position: 50% 50%;
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-attachment: scroll;
   filter:
     grayscale(var(--bg-grayscale, 1))
     contrast(var(--bg-contrast, 1.05))
@@ -349,7 +349,7 @@ button { border: none; background: none; font: inherit; color: inherit; cursor: 
 
 /* ──────────────────────────────────────────
    HOLE (window) — element positioned in paper,
-   shows bg-layer through via fixed-attachment trick
+   shows the fixed bg-layer through the transparent paper cutouts
    ────────────────────────────────────────── */
 .hole {
   position: relative;
