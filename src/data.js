@@ -2,7 +2,7 @@
 const data = {
   channel: {
     nameJa: "hjjjsn",
-    nameKana: "ヒジジスン",
+    nameKana: "ひつじ",
     tagline: "music notebook",
     iconText: "hj",
     iconImage: "/assets/icon.jpg"
@@ -11,7 +11,7 @@ const data = {
     primary: "音楽、文章、制作のための道具などを作っています。",
     secondary: "生活、精神疾患、制度、孤立などについて考えることが多いです。",
     place: "JAPAN",
-    since: "2021—"
+    since: "2026—"
   },
   activities: [
     { ja: "オリジナル楽曲の制作", en: "original songs", mark: "原" },
