@@ -618,9 +618,9 @@ function BgControls({ tweaks, setTweak }) {
 
   function loadFile(file) {
     if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = (e) => setTweak('bgImage', e.target.result);
-    reader.readAsDataURL(file);
+    const url = URL.createObjectURL(file);
+    setTweak('bgImage', url);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   return (
@@ -677,7 +677,7 @@ function BgControls({ tweaks, setTweak }) {
             </label>
           </div>
           <p className="bg-panel-foot">
-            ※ 画像はブラウザ内のみで保持。リロードするとリセットされます。
+            ※ 選んだ画像はこのタブだけの一時表示です。固定背景は assets/background.jpg を差し替えてください。
           </p>
         </div>
       )}
@@ -749,9 +749,7 @@ function App() {
       e.preventDefault(); depth = 0; setDragging(false);
       const f = e.dataTransfer?.files?.[0];
       if (f && f.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (ev) => setTweak('bgImage', ev.target.result);
-        reader.readAsDataURL(f);
+        setTweak('bgImage', URL.createObjectURL(f));
       }
     }
     window.addEventListener('dragenter', onDragEnter);
