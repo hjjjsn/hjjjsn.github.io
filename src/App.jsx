@@ -717,7 +717,7 @@ function App() {
   const [tweaks, setTweak] = useLocalTweaks();
   const [active, setActive] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const paperBgRef = useRef(null);
+  const [paperShape, setPaperShape] = useState({ width: 1, height: 1, path: "" });
 
   /* observe sections */
   useEffect(() => {
@@ -780,64 +780,30 @@ function App() {
     let raf = 0;
     let cancelled = false;
 
-    function drawPaperCutouts() {
+    function updatePaperShape() {
       if (cancelled) return;
       const paper = document.querySelector('.paper');
-      const canvas = paperBgRef.current;
-      if (!paper || !canvas) return;
+      if (!paper) return;
 
       const paperRect = paper.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const width = Math.max(1, Math.round(paperRect.width));
       const height = Math.max(1, Math.round(paperRect.height));
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-
-      const ctx = canvas.getContext('2d');
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = '#F5F1E6';
-      ctx.fillRect(0, 0, width, height);
-
-      ctx.fillStyle = 'rgba(26,26,26,0.025)';
-      for (let y = 2; y < height; y += 7) {
-        for (let x = 2; x < width; x += 7) {
-          ctx.beginPath();
-          ctx.arc(x, y, 1, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-      ctx.fillStyle = 'rgba(90,122,74,0.025)';
-      for (let y = 6; y < height; y += 13) {
-        for (let x = 6; x < width; x += 13) {
-          ctx.beginPath();
-          ctx.arc(x, y, 1, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
+      const fmt = (value) => Math.round(value * 100) / 100;
+      const outer = `M0 0H${width}V${height}H0Z`;
       const holes = Array.from(document.querySelectorAll('.hole-inner')).map((el) => {
         const rect = el.getBoundingClientRect();
-        return {
-          x: rect.left - paperRect.left,
-          y: rect.top - paperRect.top,
-          w: rect.width,
-          h: rect.height,
-        };
+        const x = fmt(rect.left - paperRect.left);
+        const y = fmt(rect.top - paperRect.top);
+        const w = fmt(rect.width);
+        const h = fmt(rect.height);
+        return `M${x} ${y}H${fmt(x + w)}V${fmt(y + h)}H${x}Z`;
       });
-      ctx.save();
-      ctx.globalCompositeOperation = 'destination-out';
-      holes.forEach((h) => {
-        ctx.fillRect(h.x, h.y, h.w, h.h);
-      });
-      ctx.restore();
+      setPaperShape({ width, height, path: [outer, ...holes].join(' ') });
     }
 
     function schedule() {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(drawPaperCutouts);
+      raf = requestAnimationFrame(updatePaperShape);
     }
 
     window.addEventListener('resize', schedule);
@@ -872,7 +838,14 @@ function App() {
       <BgControls tweaks={tweaks} setTweak={setTweak}/>
 
       <main className="paper">
-        <canvas ref={paperBgRef} className="paper-bg" aria-hidden="true"/>
+        <svg
+          className="paper-bg"
+          viewBox={`0 0 ${paperShape.width} ${paperShape.height}`}
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path d={paperShape.path} fill="#F5F1E6" fillRule="evenodd" />
+        </svg>
         <HeroSection data={data}/>
         <ActivitiesSection data={data}/>
         <SongsSection data={data}/>
