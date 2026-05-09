@@ -778,41 +778,50 @@ function App() {
   useEffect(() => {
     let raf = 0;
     let cancelled = false;
-    let currentAspect = 4 / 3;
-    const bgUrl = tweaks.bgImage || new URL('assets/background.jpg', window.location.href).href;
 
-    function applyHoleBackgrounds() {
+    function applyPaperCutouts() {
       if (cancelled) return;
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const coverW = Math.max(vw, vh * currentAspect);
-      const coverH = coverW / currentAspect;
-      const left = (vw - coverW) / 2;
-      const top = (vh - coverH) / 2;
+      const paper = document.querySelector('.paper');
+      const paperBg = document.querySelector('.paper-bg');
+      if (!paper || !paperBg) return;
 
-      document.querySelectorAll('.hole-inner').forEach((el) => {
+      const paperRect = paper.getBoundingClientRect();
+      const holes = Array.from(document.querySelectorAll('.hole-inner')).map((el) => {
         const rect = el.getBoundingClientRect();
-        el.style.setProperty('--hole-bg-size', `${coverW}px ${coverH}px`);
-        el.style.setProperty('--hole-bg-position', `${left - rect.left}px ${top - rect.top}px`);
+        return {
+          x: rect.left - paperRect.left,
+          y: rect.top - paperRect.top,
+          w: rect.width,
+          h: rect.height,
+        };
       });
+
+      const masks = [
+        '<svg xmlns="http://www.w3.org/2000/svg"',
+        ` width="${paperRect.width}" height="${paperRect.height}"`,
+        ` viewBox="0 0 ${paperRect.width} ${paperRect.height}">`,
+        '<defs><mask id="cut"><rect width="100%" height="100%" fill="white"/>',
+        ...holes.map((h) => (
+          `<rect x="${h.x}" y="${h.y}" width="${h.w}" height="${h.h}" fill="black"/>`
+        )),
+        '</mask></defs><rect width="100%" height="100%" fill="white" mask="url(%23cut)"/></svg>',
+      ];
+      const mask = `url("data:image/svg+xml,${encodeURIComponent(masks.join(''))}")`;
+      paperBg.style.webkitMaskImage = mask;
+      paperBg.style.maskImage = mask;
+      paperBg.style.webkitMaskSize = '100% 100%';
+      paperBg.style.maskSize = '100% 100%';
     }
 
     function schedule() {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(applyHoleBackgrounds);
+      raf = requestAnimationFrame(applyPaperCutouts);
     }
 
-    const img = new Image();
-    img.onload = () => {
-      currentAspect = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3;
-      schedule();
-    };
-    img.onerror = schedule;
-    img.src = bgUrl;
-
-    const fallback = () => schedule();
-    window.addEventListener('scroll', fallback, { passive: true });
-    window.addEventListener('resize', fallback);
+    window.addEventListener('resize', schedule);
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('click', schedule);
+    window.addEventListener('load', schedule);
     schedule();
     const timers = [120, 480, 960].map((delay) => setTimeout(schedule, delay));
 
@@ -820,10 +829,12 @@ function App() {
       cancelled = true;
       cancelAnimationFrame(raf);
       timers.forEach(clearTimeout);
-      window.removeEventListener('scroll', fallback);
-      window.removeEventListener('resize', fallback);
+      window.removeEventListener('resize', schedule);
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('click', schedule);
+      window.removeEventListener('load', schedule);
     };
-  }, [tweaks.bgImage]);
+  }, []);
 
   return (
     <>
